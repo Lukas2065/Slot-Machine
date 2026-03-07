@@ -7,7 +7,7 @@
 #define SCREEN_HEIGHT 64 // OLED height, in pixels
 
 // Create display object
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
+Adafruit_SSD1306 display_1(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
 
 void setup() {
   Serial.begin(9600);
@@ -15,28 +15,47 @@ void setup() {
 }
 
 void loop() {
-  control_brightness();
+  display_1.clearDisplay();
+  draw_slot_lines();
+  draw_pixel_box(32*32, get_pot_x(), 30, 32);
+  display_1.display();
 }
 
-void control_brightness() {
-  display.clearDisplay();
+void draw_pixel_box(int box_size, int x_pos, int y_pos, int rows) {
+  for(int y = 0; y < rows; y++) {
+    for(int x = 0; x < rows; x++) {
+      display_1.drawPixel(x_pos + x, y_pos + y, SSD1306_WHITE);
+    }
+  }
+}
+
+void draw_slot_lines() {
+  int divider_1 = (SCREEN_WIDTH/3);
+  int divider_2 = (SCREEN_WIDTH/3) * 2;
+
+  display_1.drawLine(divider_1, 0, divider_1, SCREEN_HEIGHT-1, SSD1306_WHITE);
+  display_1.drawLine(divider_2, 0, divider_2, SCREEN_HEIGHT-1, SSD1306_WHITE);
+
+  //Draw a box around the display
+  display_1.drawLine(0, 0, 0, 63, SSD1306_WHITE);
+  display_1.drawLine(0, 0, 127, 0, SSD1306_WHITE);
+  display_1.drawLine(0, 63, 127, 63, SSD1306_WHITE);
+  display_1.drawLine(127, 0, 127, 63, SSD1306_WHITE);
+}
+
+int get_pot_x() {
   int pot_power = analogRead(POT_PIN);
-  //Serial.println(pot_power);
-
   double x = (SCREEN_WIDTH-1) * (pot_power/1023.0);
-  Serial.println(x);
   int screen_x = round(x);
-
-  display.drawLine(x, 0, x, 63, SSD1306_WHITE);
-  display.display();
+  return screen_x;
 }
 
 void set_up_screen() {
   // Initialize display
-  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // 0x3C is common address
+  if(!display_1.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // 0x3C is common address
     Serial.println(F("SSD1306 allocation failed"));
     for(;;);
   }
   
-  display.clearDisplay();
+  display_1.clearDisplay();
 }
