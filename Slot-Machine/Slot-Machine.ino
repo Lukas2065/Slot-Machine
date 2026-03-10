@@ -5,6 +5,7 @@
 #define POT_PIN A7
 #define SCREEN_WIDTH 128 // OLED width, in pixels
 #define SCREEN_HEIGHT 64 // OLED height, in pixels
+#define ICON_DEFAULT_Y 16 //Default Y Position of each icon
 
 // Create display object
 Adafruit_SSD1306 display_1(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
@@ -17,9 +18,12 @@ void setup() {
 void loop() {
   display_1.clearDisplay();
   draw_slot_lines();
-  draw_pixel_box(32*32, get_pot_x(), 30, 32);
+  draw_pixel_box(32*32, get_x_pos(0), ICON_DEFAULT_Y, 32);
+  draw_pixel_box(32*32, get_x_pos(1), ICON_DEFAULT_Y, 32);
+  draw_pixel_box(32*32, get_x_pos(2), ICON_DEFAULT_Y, 32);
   display_1.display();
 }
+
 
 void draw_pixel_box(int box_size, int x_pos, int y_pos, int rows) {
   for(int y = 0; y < rows; y++) {
@@ -27,6 +31,14 @@ void draw_pixel_box(int box_size, int x_pos, int y_pos, int rows) {
       display_1.drawPixel(x_pos + x, y_pos + y, SSD1306_WHITE);
     }
   }
+}
+
+int get_x_pos(int section) {
+  int x_pos;
+  int total_sections = 3;
+
+  x_pos = ((SCREEN_WIDTH/total_sections) * section) + (6);
+  return x_pos;
 }
 
 void draw_slot_lines() {
