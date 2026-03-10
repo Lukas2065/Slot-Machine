@@ -6,6 +6,10 @@
 #define SCREEN_WIDTH 128 // OLED width, in pixels
 #define SCREEN_HEIGHT 64 // OLED height, in pixels
 #define ICON_DEFAULT_Y 16 //Default Y Position of each icon
+#define POT_0_ERROR 25 //A Error margin for potentiometer due to noise
+
+//Define the states for the FSM
+enum {idle, lever_pulled, spin} current_state;
 
 // Create display object
 Adafruit_SSD1306 display_1(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
@@ -13,17 +17,59 @@ Adafruit_SSD1306 display_1(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
 void setup() {
   Serial.begin(9600);
   set_up_screen();
+  current_state = idle;
 }
 
 void loop() {
+  handle_FSM();
+}
+
+void handle_FSM() {
   display_1.clearDisplay();
-  draw_slot_lines();
-  draw_pixel_box(32*32, get_x_pos(0), ICON_DEFAULT_Y, 32);
-  draw_pixel_box(32*32, get_x_pos(1), ICON_DEFAULT_Y, 32);
-  draw_pixel_box(32*32, get_x_pos(2), ICON_DEFAULT_Y, 32);
+  switch (current_state) {
+    case idle:
+      draw_slot_lines();
+      draw_icons_default();
+      Serial.println(analogRead(POT_PIN));
+      if(is_lever_pulled()) {
+        current_state = lever_pulled;
+      }
+      break;
+    case lever_pulled:
+      if(is_lever_released()) {
+        current_state = spin;
+      }
+      break;
+    case spin:
+      draw_pixel_box(32*32, get_x_pos(0), 0, 32);
+      draw_pixel_box(32*32, get_x_pos(1), 0, 32);
+      draw_pixel_box(32*32, get_x_pos(2), 0, 32);
+      break;
+  }
   display_1.display();
 }
 
+void draw_icons_default() {
+  draw_pixel_box(32*32, get_x_pos(0), ICON_DEFAULT_Y, 32);
+  draw_pixel_box(32*32, get_x_pos(1), ICON_DEFAULT_Y, 32);
+  draw_pixel_box(32*32, get_x_pos(2), ICON_DEFAULT_Y, 32);
+}
+
+bool is_lever_pulled() {
+  if(analogRead(POT_PIN) > POT_0_ERROR) {
+    Serial.println("Lever Pulled");
+    return true;
+  }
+  return false;
+}
+
+bool is_lever_released() {
+  if(analogRead(POT_PIN) < POT_0_ERROR) {
+    Serial.println("Lever Released");
+    return true;
+  }
+  return false;
+}
 
 void draw_pixel_box(int box_size, int x_pos, int y_pos, int rows) {
   for(int y = 0; y < rows; y++) {
