@@ -11,6 +11,8 @@
 //Define the states for the FSM
 enum {idle, lever_pulled, spin} current_state;
 
+unsigned long previousMillis = 0;
+
 // Create display object
 Adafruit_SSD1306 display_1(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
 
@@ -26,27 +28,42 @@ void loop() {
 
 void handle_FSM() {
   display_1.clearDisplay();
+  draw_slot_lines();
   switch (current_state) {
     case idle:
-      draw_slot_lines();
       draw_icons_default();
-      Serial.println(analogRead(POT_PIN));
       if(is_lever_pulled()) {
         current_state = lever_pulled;
       }
       break;
     case lever_pulled:
+      draw_icons_default();
       if(is_lever_released()) {
         current_state = spin;
       }
       break;
     case spin:
-      draw_pixel_box(32*32, get_x_pos(0), 0, 32);
-      draw_pixel_box(32*32, get_x_pos(1), 0, 32);
-      draw_pixel_box(32*32, get_x_pos(2), 0, 32);
+      spin_icons();
       break;
   }
   display_1.display();
+}
+
+void spin_icons() {
+  const long wait_time = 500;
+  unsigned long currentMillis = millis();
+  if (currentMillis - previousMillis >= wait_time) {
+    previousMillis = currentMillis;
+    draw_icons(0);
+  } else {
+    draw_icons(32);
+  }
+}
+
+void draw_icons(int y) {
+  draw_pixel_box(32*32, get_x_pos(0), y, 32);
+  draw_pixel_box(32*32, get_x_pos(1), y, 32);
+  draw_pixel_box(32*32, get_x_pos(2), y, 32);
 }
 
 void draw_icons_default() {
