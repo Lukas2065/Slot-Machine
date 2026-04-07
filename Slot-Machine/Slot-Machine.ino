@@ -17,10 +17,21 @@ int y_pos = 16;
 // Create display object
 Adafruit_SSD1306 display_1(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
 
+int random_icon_1;
+int random_icon_2;
+int random_icon_3;
+
 void setup() {
   Serial.begin(9600);
   set_up_screen();
   current_state = idle;
+
+  //Make sure that the random() function is indeed random each time the arduino starts up
+  randomSeed(analogRead(0));
+
+  random_icon_1 = random(0, 3);
+  random_icon_2 = random(0, 3);
+  random_icon_3 = random(0, 3);
 }
 
 void loop() {
@@ -33,13 +44,13 @@ void handle_FSM() {
     case idle:
       display_1.clearDisplay();
       draw_slot_lines();
-      draw_icons_default();
+      draw_icons_test(random_icon_1, random_icon_2, random_icon_3);
       if (is_lever_pulled()) {
         current_state = lever_pulled;
       }
       break;
     case lever_pulled:
-      draw_icons_default();
+      draw_icons_test(random_icon_1, random_icon_2, random_icon_3);
       if (is_lever_released()) {
         current_state = spin;
       }
@@ -52,30 +63,70 @@ void handle_FSM() {
 }
 
 void spin_icons() {
-  const long wait_time = 25;
+  const long wait_time = 70;
   unsigned long currentMillis = millis();
   if (currentMillis - previousMillis >= wait_time) {
     previousMillis = currentMillis;
     display_1.clearDisplay();
-    draw_icons(y_pos);
-    if(y_pos == 64) {
-      y_pos = 0;
-    }
-    y_pos += 16;
+    helper();
   }
   draw_slot_lines();
 }
 
-//void spin_icons() {
-//  const long wait_time = 500;
-//  unsigned long currentMillis = millis();
-//  if (currentMillis - previousMillis >= wait_time) {
-//    previousMillis = currentMillis;
-//    draw_icons(0);
-//  } else {
-//    draw_icons(32);
-//  }
-//}
+void helper() {
+  random_icon_1 = random(0, 3);
+  random_icon_2 = random(0, 3);
+  random_icon_3 = random(0, 3);
+  draw_icons_test(random_icon_1, random_icon_2, random_icon_3);
+}
+
+void draw_icons_test(int icon_1, int icon_2, int icon_3) {
+  draw_slot_1(icon_1);
+  draw_slot_2(icon_2);
+  draw_slot_3(icon_3);
+}
+
+void draw_slot_1(int icon) {
+  switch(icon) {
+    case 0:
+      display_1.drawCircle(get_x_pos(0), ICON_DEFAULT_Y, 32, SSD1306_WHITE);
+      break;
+    case 1:
+      display_1.drawRect(get_x_pos(0), ICON_DEFAULT_Y, 32, 32, SSD1306_WHITE);
+      break;
+    case 2:
+      display_1.drawRoundRect(get_x_pos(0), ICON_DEFAULT_Y, 32, 32, 5, SSD1306_WHITE);
+      break;
+  }
+}
+
+void draw_slot_2(int icon) {
+  switch(icon) {
+    case 0:
+      display_1.drawCircle(get_x_pos(1), ICON_DEFAULT_Y, 16, SSD1306_WHITE);
+      break;
+    case 1:
+      display_1.drawRect(get_x_pos(1), ICON_DEFAULT_Y, 32, 32, SSD1306_WHITE);
+      break;
+    case 2:
+      display_1.drawRoundRect(get_x_pos(1), ICON_DEFAULT_Y, 32, 32, 5, SSD1306_WHITE);
+      break;
+  }
+}
+
+void draw_slot_3(int icon) {
+  switch(icon) {
+    case 0:
+      display_1.drawCircle(get_x_pos(2), ICON_DEFAULT_Y, 32, SSD1306_WHITE);
+      break;
+    case 1:
+      display_1.drawRect(get_x_pos(2), ICON_DEFAULT_Y, 32, 32, SSD1306_WHITE);
+      break;
+    case 2:
+      display_1.drawRoundRect(get_x_pos(2), ICON_DEFAULT_Y, 32, 32, 5, SSD1306_WHITE);
+      break;
+  }
+}
 
 void draw_icons(int y) {
   draw_pixel_box(32 * 32, get_x_pos(0), y, 32);
