@@ -40,10 +40,10 @@ void setup() {
   random_icon_2 = random(0, 3);
   random_icon_3 = random(0, 3);
 
-  spin_time = 50;
-  rectY1 = -32; 
+  spin_time = 1;
+  rectY1 = -48; 
   rectY2 = 16;
-  rectY3 = 64;
+  rectY3 = 80;
 }
 
 void loop() {
@@ -103,17 +103,16 @@ void draw_icons_spin() {
 }
 
 void draw_slot_1_spinning() {
-  spin_time = get_pot_x();
   if (millis() - spinPreviousMillis >= spin_time) {
         spinPreviousMillis = millis();
-        rectY1 += 8;
-        rectY2 += 8;
-        rectY3 += 8;
+        rectY1 += 32;
+        rectY2 += 32;
+        rectY3 += 32;
     
         // loop back to top
-        if (rectY1 > 96) rectY1 = -32;
-        if (rectY2 > 96) rectY2 = -32;
-        if (rectY3 > 96) rectY3 = -32;
+        if (rectY1 > 144) rectY1 = -48;
+        if (rectY2 > 144) rectY2 = -48;
+        if (rectY3 > 144) rectY3 = -48;
   }
 
   display_1.drawRect(get_x_pos(0), rectY1, 32, 32, WHITE);
@@ -236,7 +235,7 @@ int get_pot_x() {
   int pot_power = analogRead(POT_PIN);
   double x = (SCREEN_WIDTH - 1) * (pot_power / 1023.0);
   int screen_x = round(x);
-  return pot_power;
+  return screen_x;
 }
 
 void set_up_screen() {
