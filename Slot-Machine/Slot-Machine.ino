@@ -11,7 +11,9 @@
 //Define the states for the FSM
 enum {idle, lever_pulled, spin} current_state;
 
+unsigned long spinPreviousMillis = 0;
 unsigned long previousMillis = 0;
+const int spin_time = 5000;
 int y_pos = 16;
 
 // Create display object
@@ -57,6 +59,11 @@ void handle_FSM() {
       break;
     case spin:
       spin_icons();
+      if (millis() - spinPreviousMillis >= spin_time) {
+        spinPreviousMillis = millis();
+        Serial.println("5 second passed");
+        current_state = idle;
+      }
       break;
   }
   display_1.display();
