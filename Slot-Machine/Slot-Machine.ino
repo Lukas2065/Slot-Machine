@@ -13,8 +13,13 @@ enum {idle, lever_pulled, spin} current_state;
 
 unsigned long spinPreviousMillis = 0;
 unsigned long previousMillis = 0;
-const int spin_time = 5000;
-int y_pos = 16;
+unsigned long prev = 0;
+
+int spin_time;
+int rectY1;
+int rectY2;
+int rectY3;
+
 
 // Create display object
 Adafruit_SSD1306 display_1(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
@@ -34,6 +39,11 @@ void setup() {
   random_icon_1 = random(0, 3);
   random_icon_2 = random(0, 3);
   random_icon_3 = random(0, 3);
+
+  spin_time = 50;
+  rectY1 = -32; 
+  rectY2 = 16;
+  rectY3 = 64;
 }
 
 void loop() {
@@ -59,11 +69,6 @@ void handle_FSM() {
       break;
     case spin:
       spin_icons();
-      if (millis() - spinPreviousMillis >= spin_time) {
-        spinPreviousMillis = millis();
-        Serial.println("5 second passed");
-        current_state = idle;
-      }
       break;
   }
   display_1.display();
@@ -84,13 +89,42 @@ void helper() {
   random_icon_1 = random(0, 3);
   random_icon_2 = random(0, 3);
   random_icon_3 = random(0, 3);
-  draw_icons_test(random_icon_1, random_icon_2, random_icon_3);
+  draw_icons_spin();
 }
 
 void draw_icons_test(int icon_1, int icon_2, int icon_3) {
   draw_slot_1(icon_1);
   draw_slot_2(icon_2);
   draw_slot_3(icon_3);
+}
+
+void draw_icons_spin() {
+  draw_slot_1_spinning();
+}
+
+void draw_slot_1_spinning() {
+  spin_time = get_pot_x();
+  if (millis() - spinPreviousMillis >= spin_time) {
+        spinPreviousMillis = millis();
+        rectY1 += 8;
+        rectY2 += 8;
+        rectY3 += 8;
+    
+        // loop back to top
+        if (rectY1 > 96) rectY1 = -32;
+        if (rectY2 > 96) rectY2 = -32;
+        if (rectY3 > 96) rectY3 = -32;
+  }
+
+  display_1.drawRect(get_x_pos(0), rectY1, 32, 32, WHITE);
+  //display_1.fillRect(get_x_pos(0), rectY1, 8, 8, WHITE);
+  
+  display_1.drawRect(get_x_pos(0), rectY2, 32, 32, WHITE);
+  //display_1.fillRect(get_x_pos(0), rectY2, 16, 16, WHITE);
+  
+  display_1.drawRect(get_x_pos(0), rectY3, 32, 32, WHITE);
+  //display_1.fillRect(get_x_pos(0), rectY3, 32, 32, WHITE);
+  
 }
 
 void draw_slot_1(int icon) {
@@ -133,6 +167,11 @@ void draw_slot_3(int icon) {
       display_1.drawRoundRect(get_x_pos(2), ICON_DEFAULT_Y, 32, 32, 5, SSD1306_WHITE);
       break;
   }
+}
+
+int get_y_pos(int icon_1, int icon_2) {
+  int distance = 16;
+  
 }
 
 void draw_icons(int y) {
@@ -197,7 +236,7 @@ int get_pot_x() {
   int pot_power = analogRead(POT_PIN);
   double x = (SCREEN_WIDTH - 1) * (pot_power / 1023.0);
   int screen_x = round(x);
-  return screen_x;
+  return pot_power;
 }
 
 void set_up_screen() {
