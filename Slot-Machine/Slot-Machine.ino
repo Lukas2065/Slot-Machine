@@ -76,7 +76,7 @@ const unsigned char* epd_bitmap_allArray[bitmap_LEN] = {
 };
 
 //Define the states for the FSM
-enum {idle, lever_pulled, spin} current_state;
+enum {idle, lever_pulled, spin, display_result} current_state;
 
 unsigned long spinPreviousMillis = 0;
 unsigned long previousMillis = 0;
@@ -136,17 +136,41 @@ void handle_FSM() {
     case spin:
       spin_icons();
       break;
+    case display_result:
+      determine_odds();
+      current_state = idle;
+      break;
   }
   display_1.display();
 }
 
+/**
+ * Function to determine if the spin is a winner
+ * 0-4 means its a win
+ * 5-9 means it displays a random outcome that could still be a win
+ */
+void determine_odds() {
+  int jackpot_result = random(0,10);
+  if(jackpot_result < 5) {
+    slot_icon_1 = jackpot_result;
+    slot_icon_2 = jackpot_result;
+    slot_icon_3 = jackpot_result;
+  } 
+  else {
+    slot_icon_1 = random(0,bitmap_LEN);
+    slot_icon_2 = random(0,bitmap_LEN);
+    slot_icon_3 = random(0,bitmap_LEN);
+  }
+}
+
 void spin_icons() {
-  const long wait_time = 70;
+  const long wait_time = 5000;
   unsigned long currentMillis = millis();
+  display_1.clearDisplay();
+  handle_icons_spinning();
   if (currentMillis - previousMillis >= wait_time) {
     previousMillis = currentMillis;
-    display_1.clearDisplay();
-    handle_icons_spinning();
+    current_state = display_result;
   }
   draw_slot_lines();
 }
@@ -160,9 +184,9 @@ void draw_icons() {
 void handle_icons_spinning() {
   if (millis() - spinPreviousMillis >= spin_time) {
         spinPreviousMillis = millis();
-        spin_y1_pos += 16;
-        spin_y2_pos += 16;
-        spin_y3_pos += 16;
+        spin_y1_pos += 32;
+        spin_y2_pos += 32;
+        spin_y3_pos += 32;
     
         // loop back to top
         //And change the icon to a random one
@@ -182,17 +206,17 @@ void handle_icons_spinning() {
         }
   }
 
-  display_1.drawBitmap(get_x_pos(0), spin_y1_pos, epd_bitmap_allArray[slot_icon_1], 32, 32, WHITE);
+  display_1.drawBitmap(get_x_pos(0), spin_y1_pos, epd_bitmap_allArray[(slot_icon_1 - 1) % 5], 32, 32, WHITE);
   display_1.drawBitmap(get_x_pos(0), spin_y2_pos, epd_bitmap_allArray[slot_icon_1], 32, 32, WHITE);
-  display_1.drawBitmap(get_x_pos(0), spin_y3_pos, epd_bitmap_allArray[slot_icon_1], 32, 32, WHITE);
+  display_1.drawBitmap(get_x_pos(0), spin_y3_pos, epd_bitmap_allArray[(slot_icon_1 + 1) % 5], 32, 32, WHITE);
 
-  display_1.drawBitmap(get_x_pos(1), spin_y1_pos, epd_bitmap_allArray[slot_icon_2], 32, 32, WHITE);
+  display_1.drawBitmap(get_x_pos(1), spin_y1_pos, epd_bitmap_allArray[(slot_icon_2 - 1) % 5], 32, 32, WHITE);
   display_1.drawBitmap(get_x_pos(1), spin_y2_pos, epd_bitmap_allArray[slot_icon_2], 32, 32, WHITE);
-  display_1.drawBitmap(get_x_pos(1), spin_y3_pos, epd_bitmap_allArray[slot_icon_2], 32, 32, WHITE);
+  display_1.drawBitmap(get_x_pos(1), spin_y3_pos, epd_bitmap_allArray[(slot_icon_2 + 1) % 5], 32, 32, WHITE);
 
-  display_1.drawBitmap(get_x_pos(2), spin_y1_pos, epd_bitmap_allArray[slot_icon_3], 32, 32, WHITE);
+  display_1.drawBitmap(get_x_pos(2), spin_y1_pos, epd_bitmap_allArray[(slot_icon_3 - 1) % 5], 32, 32, WHITE);
   display_1.drawBitmap(get_x_pos(2), spin_y2_pos, epd_bitmap_allArray[slot_icon_3], 32, 32, WHITE);
-  display_1.drawBitmap(get_x_pos(2), spin_y3_pos, epd_bitmap_allArray[slot_icon_3], 32, 32, WHITE);
+  display_1.drawBitmap(get_x_pos(2), spin_y3_pos, epd_bitmap_allArray[(slot_icon_3 + 1) % 5], 32, 32, WHITE);
 }
 
 void draw_slot(int slot) {
