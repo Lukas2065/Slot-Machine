@@ -66,8 +66,8 @@ const unsigned char epd_bitmap_seven [] PROGMEM = {
 };
 
 // Array of all bitmaps for convenience. (Total bytes used to store images in PROGMEM = 720)
-const int epd_bitmap_allArray_LEN = 5;
-const unsigned char* epd_bitmap_allArray[5] = {
+const int bitmap_LEN = 5;
+const unsigned char* epd_bitmap_allArray[bitmap_LEN] = {
   epd_bitmap_bar,
   epd_bitmap_cherry,
   epd_bitmap_diamond,
@@ -102,10 +102,10 @@ void setup() {
 
   //Make sure that the random() function is indeed random each time the arduino starts up
   randomSeed(analogRead(0));
-  slot_icon_1 = random(0, 3);
-  slot_icon_2 = random(0, 3);
-  slot_icon_3 = random(0, 3);
-
+  slot_icon_1 = random(0, bitmap_LEN);
+  slot_icon_2 = random(0, bitmap_LEN);
+  slot_icon_3 = random(0, bitmap_LEN);
+  
   spin_time = 1;
   spin_y1_pos = -48; 
   spin_y2_pos = 16;
@@ -146,82 +146,65 @@ void spin_icons() {
   if (currentMillis - previousMillis >= wait_time) {
     previousMillis = currentMillis;
     display_1.clearDisplay();
-    draw_icons_spinning();
+    handle_icons_spinning();
   }
   draw_slot_lines();
 }
 
 void draw_icons() {
-  draw_slot_1(slot_icon_1);
-  draw_slot_2(slot_icon_2);
-  draw_slot_3(slot_icon_3);
+  draw_slot(1);
+  draw_slot(2);
+  draw_slot(3);
 }
 
-void draw_icons_spinning() {
+void handle_icons_spinning() {
   if (millis() - spinPreviousMillis >= spin_time) {
         spinPreviousMillis = millis();
-        spin_y1_pos += 32;
-        spin_y2_pos += 32;
-        spin_y3_pos += 32;
+        spin_y1_pos += 16;
+        spin_y2_pos += 16;
+        spin_y3_pos += 16;
     
         // loop back to top
-        if (spin_y1_pos > 144) spin_y1_pos = -48;
-        if (spin_y2_pos > 144) spin_y2_pos = -48;
-        if (spin_y3_pos > 144) spin_y3_pos = -48;
+        //And change the icon to a random one
+        if (spin_y1_pos > 144) {
+          slot_icon_1 = random(0, bitmap_LEN);
+          spin_y1_pos = -48;
+        }
+        
+        if (spin_y2_pos > 144) {
+          slot_icon_2 = random(0, bitmap_LEN);
+          spin_y2_pos = -48;
+        }
+        
+        if (spin_y3_pos > 144) {
+          slot_icon_3 = random(0, bitmap_LEN);
+          spin_y3_pos = -48;
+        }
   }
 
-  display_1.drawRect(get_x_pos(0), spin_y1_pos, 32, 32, WHITE);
-  display_1.drawRect(get_x_pos(0), spin_y2_pos, 32, 32, WHITE);
-  display_1.drawRect(get_x_pos(0), spin_y3_pos, 32, 32, WHITE);
+  display_1.drawBitmap(get_x_pos(0), spin_y1_pos, epd_bitmap_allArray[slot_icon_1], 32, 32, WHITE);
+  display_1.drawBitmap(get_x_pos(0), spin_y2_pos, epd_bitmap_allArray[slot_icon_1], 32, 32, WHITE);
+  display_1.drawBitmap(get_x_pos(0), spin_y3_pos, epd_bitmap_allArray[slot_icon_1], 32, 32, WHITE);
 
-  display_1.drawRect(get_x_pos(1), spin_y1_pos, 32, 32, WHITE);
-  display_1.drawRect(get_x_pos(1), spin_y2_pos, 32, 32, WHITE);
-  display_1.drawRect(get_x_pos(1), spin_y3_pos, 32, 32, WHITE);
+  display_1.drawBitmap(get_x_pos(1), spin_y1_pos, epd_bitmap_allArray[slot_icon_2], 32, 32, WHITE);
+  display_1.drawBitmap(get_x_pos(1), spin_y2_pos, epd_bitmap_allArray[slot_icon_2], 32, 32, WHITE);
+  display_1.drawBitmap(get_x_pos(1), spin_y3_pos, epd_bitmap_allArray[slot_icon_2], 32, 32, WHITE);
 
-  display_1.drawRect(get_x_pos(2), spin_y1_pos, 32, 32, WHITE);
-  display_1.drawRect(get_x_pos(2), spin_y2_pos, 32, 32, WHITE);
-  display_1.drawRect(get_x_pos(2), spin_y3_pos, 32, 32, WHITE);
+  display_1.drawBitmap(get_x_pos(2), spin_y1_pos, epd_bitmap_allArray[slot_icon_3], 32, 32, WHITE);
+  display_1.drawBitmap(get_x_pos(2), spin_y2_pos, epd_bitmap_allArray[slot_icon_3], 32, 32, WHITE);
+  display_1.drawBitmap(get_x_pos(2), spin_y3_pos, epd_bitmap_allArray[slot_icon_3], 32, 32, WHITE);
 }
 
-
-void draw_slot_1(int icon) {
-  switch(icon) {
-    case 0:
-      display_1.drawBitmap(get_x_pos(0), ICON_DEFAULT_Y, epd_bitmap_allArray[0], 32, 32, WHITE);
-      break;
+void draw_slot(int slot) {
+  switch(slot) {
     case 1:
-      display_1.drawBitmap(get_x_pos(0), ICON_DEFAULT_Y, epd_bitmap_allArray[0], 32, 32, WHITE);
+      display_1.drawBitmap(get_x_pos(0), ICON_DEFAULT_Y, epd_bitmap_allArray[slot_icon_1], 32, 32, WHITE);
       break;
     case 2:
-      display_1.drawBitmap(get_x_pos(0), ICON_DEFAULT_Y, epd_bitmap_allArray[0], 32, 32, WHITE);
+      display_1.drawBitmap(get_x_pos(1), ICON_DEFAULT_Y, epd_bitmap_allArray[slot_icon_2], 32, 32, WHITE);
       break;
-  }
-}
-
-void draw_slot_2(int icon) {
-  switch(icon) {
-    case 0:
-      display_1.drawBitmap(get_x_pos(1), ICON_DEFAULT_Y, epd_bitmap_allArray[1], 32, 32, WHITE);
-      break;
-    case 1:
-      display_1.drawBitmap(get_x_pos(1), ICON_DEFAULT_Y, epd_bitmap_allArray[1], 32, 32, WHITE);
-      break;
-    case 2:
-      display_1.drawBitmap(get_x_pos(1), ICON_DEFAULT_Y, epd_bitmap_allArray[1], 32, 32, WHITE);
-      break;
-  }
-}
-
-void draw_slot_3(int icon) {
-  switch(icon) {
-    case 0:
-      display_1.drawBitmap(get_x_pos(2), ICON_DEFAULT_Y, epd_bitmap_allArray[4], 32, 32, WHITE);
-      break;
-    case 1:
-      display_1.drawBitmap(get_x_pos(2), ICON_DEFAULT_Y, epd_bitmap_allArray[4], 32, 32, WHITE);
-      break;
-    case 2:
-      display_1.drawBitmap(get_x_pos(2), ICON_DEFAULT_Y, epd_bitmap_allArray[4], 32, 32, WHITE);
+    case 3:
+      display_1.drawBitmap(get_x_pos(2), ICON_DEFAULT_Y, epd_bitmap_allArray[slot_icon_3], 32, 32, WHITE);
       break;
   }
 }
